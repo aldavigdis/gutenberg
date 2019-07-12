@@ -816,7 +816,47 @@ export const getEditedPostContent = createSelector(
 		}
 
 		const blocks = getBlocksForSerialization( state );
-		const content = serialize( blocks );
+		const footnotes = getFootnotes( state );
+		let content = serialize( blocks );
+
+		if ( Object.keys( footnotes ).length ) {
+			const pageDelimiter = '<!-- wp:nextpage -->';
+
+			content = content.split( pageDelimiter ).map( ( piece, index, array ) => {
+				const orderedFootnotes = [];
+				const regExp = /data-note="([a-z0-9-]+)"/g;
+				let result;
+
+				while ( ( result = regExp.exec( piece ) ) !== null ) {
+					const id = result[ 1 ];
+					orderedFootnotes.push( {
+						id,
+						text: footnotes[ id ],
+					} );
+				}
+
+				if ( ! orderedFootnotes.length ) {
+					return piece;
+				}
+
+				const isLastIndex = array.length - 1 === index;
+				const block = `
+<!-- wp:footnotes -->
+<ol>
+	${ orderedFootnotes.map( ( { id, text } ) =>
+		`<li><a id="${ id }" href="#${ id }-anchor">^</a>${ text }</li>`
+	) }
+</ol>
+<!-- /wp:footnotes -->
+`;
+
+				const space = '\n\n';
+
+				return isLastIndex ? piece + space + block : piece + block + space;
+			} ).join( pageDelimiter );
+		}
+
+		console.log( content );
 
 		// For compatibility purposes, treat a post consisting of a single
 		// freeform block as legacy content and downgrade to a pre-block-editor
