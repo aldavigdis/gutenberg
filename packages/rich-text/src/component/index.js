@@ -116,7 +116,7 @@ class RichText extends Component {
 		this.setRef = this.setRef.bind( this );
 		this.valueToEditableHTML = this.valueToEditableHTML.bind( this );
 		this.handleHorizontalNavigation = this.handleHorizontalNavigation.bind( this );
-		this.onPointerDown = this.onPointerDown.bind( this );
+		this.maybeSelectObject = this.maybeSelectObject.bind( this );
 		this.formatToValue = this.formatToValue.bind( this );
 
 		this.state = {};
@@ -275,8 +275,10 @@ class RichText extends Component {
 	 * @see setFocusedElement
 	 *
 	 * @private
+	 *
+	 * @param {SyntheticEvent} event Synthetic focus event.
 	 */
-	onFocus() {
+	onFocus( event ) {
 		const { unstableOnFocus } = this.props;
 
 		if ( unstableOnFocus ) {
@@ -300,6 +302,8 @@ class RichText extends Component {
 		this.setState( { activeFormats } );
 
 		document.addEventListener( 'selectionchange', this.onSelectionChange );
+
+		this.maybeSelectObject( event );
 	}
 
 	onBlur() {
@@ -697,13 +701,16 @@ class RichText extends Component {
 	 * Select object when they are clicked. The browser will not set any
 	 * selection when clicking e.g. an image.
 	 *
-	 * @param  {SyntheticEvent} event Synthetic mousedown or touchstart event.
+	 * @param  {SyntheticEvent} event Synthetic event.
 	 */
-	onPointerDown( event ) {
-		const { target } = event;
+	maybeSelectObject( event ) {
+		const { target, type } = event;
 
-		// If the child element has no text content, it must be an object.
-		if ( target === this.editableRef || target.textContent ) {
+		if ( target === this.editableRef ) {
+			return;
+		}
+
+		if ( type !== 'focus' && target.textContent ) {
 			return;
 		}
 
@@ -717,6 +724,8 @@ class RichText extends Component {
 
 		selection.removeAllRanges();
 		selection.addRange( range );
+
+		event.preventDefault();
 	}
 
 	componentDidUpdate( prevProps ) {
@@ -896,8 +905,7 @@ class RichText extends Component {
 					onKeyDown={ this.onKeyDown }
 					onFocus={ this.onFocus }
 					onBlur={ this.onBlur }
-					onMouseDown={ this.onPointerDown }
-					onTouchStart={ this.onPointerDown }
+					onClick={ this.maybeSelectObject }
 					setRef={ this.setRef }
 				/>
 				{ isPlaceholderVisible &&

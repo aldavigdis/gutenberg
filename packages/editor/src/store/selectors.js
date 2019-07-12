@@ -1154,6 +1154,17 @@ export function getEditorSettings( state ) {
 	return state.editorSettings;
 }
 
+/**
+ * Returns the post footnotes.
+ *
+ * @param {Object} state Editor state.
+ *
+ * @return {Object} The footnotes.
+ */
+export function getFootnotes( state ) {
+	return state.editor.present.footnotes;
+}
+
 /*
  * Backward compatibility
  */

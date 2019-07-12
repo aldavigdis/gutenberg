@@ -188,9 +188,19 @@ function accumulateSelection( accumulator, node, range, value ) {
 		return;
 	}
 
+	const currentLength = accumulator.text.length;
+
+	if (
+		node.nodeType === ELEMENT_NODE &&
+		node.getAttribute( 'data-rich-text-format-boundary' ) === 'set'
+	) {
+		accumulator.start = currentLength;
+		accumulator.end = currentLength + value.text.length;
+		return;
+	}
+
 	const { parentNode } = node;
 	const { startContainer, startOffset, endContainer, endOffset } = range;
-	const currentLength = accumulator.text.length;
 
 	// Selection can be extracted from value.
 	if ( value.start !== undefined ) {

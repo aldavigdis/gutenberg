@@ -965,6 +965,20 @@ export function updateEditorSettings( settings ) {
 }
 
 /**
+ * Returns an action object used in signalling that the footnotes should be updated.
+ *
+ * @param {Object} footnotes The footnotes.
+ *
+ * @return {Object} Action object.
+ */
+export function updateFootnotes( footnotes ) {
+	return {
+		type: 'UPDATE_FOOTNOTES',
+		footnotes,
+	};
+}
+
+/**
  * Backward compatibility
  */
 

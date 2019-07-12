@@ -199,6 +199,18 @@ export const editor = flow( [
 
 		return state;
 	},
+	footnotes( state = {}, action ) {
+		switch ( action.type ) {
+			case 'UPDATE_FOOTNOTES':
+				if ( action.footnotes === state ) {
+					return state;
+				}
+
+				return action.footnotes;
+		}
+
+		return state;
+	},
 } );
 
 /**

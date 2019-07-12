@@ -25,7 +25,7 @@ import {
  * @return {Object}                            Information to be used for
  *                                             element creation.
  */
-function fromFormat( { type, attributes, unregisteredAttributes, object, boundaryClass } ) {
+function fromFormat( { type, attributes, unregisteredAttributes, object, boundaryClass, isEditableTree } ) {
 	const formatType = getFormatType( type );
 
 	let elementAttributes = {};
@@ -39,12 +39,18 @@ function fromFormat( { type, attributes, unregisteredAttributes, object, boundar
 			elementAttributes = { ...attributes, ...elementAttributes };
 		}
 
-		return { type, attributes: elementAttributes, object };
+		return { type, attributes: elementAttributes, selfClosing: object };
 	}
 
 	elementAttributes = { ...unregisteredAttributes, ...elementAttributes };
 
 	for ( const name in attributes ) {
+		const value = attributes[ name ];
+
+		if ( value === undefined ) {
+			continue;
+		}
+
 		const key = formatType.attributes ? formatType.attributes[ name ] : false;
 
 		if ( key ) {
@@ -52,6 +58,10 @@ function fromFormat( { type, attributes, unregisteredAttributes, object, boundar
 		} else {
 			elementAttributes[ name ] = attributes[ name ];
 		}
+	}
+
+	if ( isEditableTree && object && ! formatType.object ) {
+		elementAttributes.contenteditable = 'false';
 	}
 
 	if ( formatType.className ) {
@@ -64,7 +74,7 @@ function fromFormat( { type, attributes, unregisteredAttributes, object, boundar
 
 	return {
 		type: formatType.tagName,
-		object: formatType.object,
+		selfClosing: formatType.object,
 		attributes: elementAttributes,
 	};
 }
@@ -226,7 +236,9 @@ export function toTree( {
 		if ( character === OBJECT_REPLACEMENT_CHARACTER ) {
 			pointer = append( getParent( pointer ), fromFormat( {
 				...replacements[ i ],
+				isEditableTree,
 				object: true,
+				boundaryClass: isEditableTree && start === i,
 			} ) );
 			// Ensure pointer is text node.
 			pointer = append( getParent( pointer ), '' );
