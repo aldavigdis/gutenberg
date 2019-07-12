@@ -20,6 +20,7 @@ import {
 	getFreeformContentHandlerName,
 	getDefaultBlockName,
 	isUnmodifiedDefaultBlock,
+	createBlock,
 } from '@wordpress/blocks';
 import { isInTheFuture, getDate } from '@wordpress/date';
 import { removep } from '@wordpress/autop';
@@ -823,40 +824,27 @@ export const getEditedPostContent = createSelector(
 			const pageDelimiter = '<!-- wp:nextpage -->';
 
 			content = content.split( pageDelimiter ).map( ( piece, index, array ) => {
-				const orderedFootnotes = [];
+				const order = [];
 				const regExp = /data-note="([a-z0-9-]+)"/g;
 				let result;
 
 				while ( ( result = regExp.exec( piece ) ) !== null ) {
-					const id = result[ 1 ];
-					orderedFootnotes.push( {
-						id,
-						text: footnotes[ id ],
-					} );
+					order.push( result[ 1 ] );
 				}
 
-				if ( ! orderedFootnotes.length ) {
+				if ( ! order.length ) {
 					return piece;
 				}
 
+				const block = createBlock( 'core/footnotes', { footnotes, order } );
+				const html = serialize( block );
 				const isLastIndex = array.length - 1 === index;
-				const block = `
-<!-- wp:footnotes -->
-<ol>
-	${ orderedFootnotes.map( ( { id, text } ) =>
-		`<li><a id="${ id }" href="#${ id }-anchor">^</a>${ text }</li>`
-	) }
-</ol>
-<!-- /wp:footnotes -->
-`;
 
 				const space = '\n\n';
 
-				return isLastIndex ? piece + space + block : piece + block + space;
+				return isLastIndex ? piece + space + html : piece + html + space;
 			} ).join( pageDelimiter );
 		}
-
-		console.log( content );
 
 		// For compatibility purposes, treat a post consisting of a single
 		// freeform block as legacy content and downgrade to a pre-block-editor

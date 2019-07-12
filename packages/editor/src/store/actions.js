@@ -167,7 +167,15 @@ export function* setupEditor( post, edits, template ) {
 		content = post.content.raw;
 	}
 
-	let blocks = parse( content );
+	let footnotes = {};
+	let blocks = parse( content ).filter( ( { name, attributes } ) => {
+		if ( name === 'core/footnotes' ) {
+			footnotes = { ...footnotes, ...attributes.footnotes };
+			return false;
+		}
+
+		return true;
+	} );
 
 	// Apply a template for new posts only, if exists.
 	const isNewPost = post.status === 'auto-draft';
@@ -184,6 +192,7 @@ export function* setupEditor( post, edits, template ) {
 		template,
 	};
 	yield resetEditorBlocks( blocks );
+	yield updateFootnotes( footnotes );
 	yield setupEditorState( post );
 	yield* __experimentalSubscribeSources();
 }

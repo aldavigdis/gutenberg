@@ -1,0 +1,12 @@
+{
+	"name": "core/footnotes",
+	"category": "common",
+	"attributes": {
+		"footnotes": {
+			"type": "object"
+		},
+		"order": {
+			"type": "array"
+		}
+	}
+}
